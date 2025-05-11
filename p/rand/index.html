@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content=" Golang rand包源码分析">
+<title>rand</title>
+
+<link rel='canonical' href='https://hcraM41.github.io/p/rand/'>
+
+<link rel="stylesheet" href="/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="rand">
+<meta property='og:description' content=" Golang rand包源码分析">
+<meta property='og:url' content='https://hcraM41.github.io/p/rand/'>
+<meta property='og:site_name' content='14March'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Golang' /><meta property='article:tag' content='源码' /><meta property='article:published_time' content='2025-05-10T22:26:34&#43;08:00'/><meta property='article:modified_time' content='2025-05-10T22:26:34&#43;08:00'/><meta property='og:image' content='https://hcraM41.github.io/p/rand/2.png' />
+<meta name="twitter:title" content="rand">
+<meta name="twitter:description" content=" Golang rand包源码分析"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://hcraM41.github.io/p/rand/2.png' />
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_af7373fba2061c7e.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">💭</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">14March</a></h1>
+            <h2 class="site-description">Game Developer</h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://github.com/hcraM41'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#源码剖析">源码剖析</a></li>
+    <li><a href="#源码总结">源码总结</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/rand/">
+                <img src="/p/rand/2_hu_822b77060b767c77.png"
+                        srcset="/p/rand/2_hu_822b77060b767c77.png 800w, /p/rand/2_hu_3f4e19debd4ea6f3.png 1600w"
+                        width="800" 
+                        height="288" 
+                        loading="lazy"
+                        alt="Featured image of post rand" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/golang/" >
+                Golang
+            </a>
+        
+            <a href="/categories/%E6%BA%90%E7%A0%81/" >
+                源码
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/rand/">rand</a>
+        </h2>
+    
+        
+        <h3 class="article-subtitle">
+             Golang rand包源码分析
+        </h3>
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">May 10, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 5 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="源码剖析">源码剖析
+</h2><p>通过日常随机数的代码使用，看下rank包具体的底层实现：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">NewSource</span>(<span style="color:#e06c75">time</span>.<span style="color:#61afef;font-weight:bold">Now</span>().<span style="color:#61afef;font-weight:bold">UnixNano</span>())) <span style="color:#7f848e">// 初始化随机器</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">314</span>)	<span style="color:#7f848e">// 生成 [0, 314) 内的整数</span>
+</span></span></code></pre></div><p><strong>从<code>r := rand.New(rand.NewSource(time.Now().UnixNano()))</code> 开始。</strong></p>
+<p>初始化 Rand 的时候，通过<code>rand.New(rand.NewSource(seed))</code>创建，所以看下<code>rand.New()</code>的实现。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// New returns a new Rand that uses random values from src</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// to generate other random values.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#e06c75">src</span> <span style="color:#e06c75">Source</span>) <span style="color:#56b6c2">*</span><span style="color:#e06c75">Rand</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">s64</span>, <span style="color:#e06c75">_</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">src</span>.(<span style="color:#e06c75">Source64</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">Rand</span>{<span style="color:#e06c75">src</span>: <span style="color:#e06c75">src</span>, <span style="color:#e06c75">s64</span>: <span style="color:#e06c75">s64</span>}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>可以看到 <strong>Rand</strong> 使用的是<code>rand.NewSource()</code>传入的 <strong>Source</strong>，因此接着看下<code>rand.NewSource()</code>的实现。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// NewSource returns a new pseudo-random Source seeded with the given value.</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// Unlike the default Source used by top-level functions, this source is not</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// safe for concurrent use by multiple goroutines.</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// The returned Source implements Source64.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">NewSource</span>(<span style="color:#e06c75">seed</span> <span style="color:#e5c07b">int64</span>) <span style="color:#e06c75">Source</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#61afef;font-weight:bold">newSource</span>(<span style="color:#e06c75">seed</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">newSource</span>(<span style="color:#e06c75">seed</span> <span style="color:#e5c07b">int64</span>) <span style="color:#56b6c2">*</span><span style="color:#e06c75">rngSource</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">rng</span> <span style="color:#e06c75">rngSource</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rng</span>.<span style="color:#61afef;font-weight:bold">Seed</span>(<span style="color:#e06c75">seed</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">rng</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>看到 <strong>Source</strong> 的实际类型是 <strong>rngSource</strong>，实现了接口 <strong>Source</strong>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">type</span> <span style="color:#e06c75">rngSource</span> <span style="color:#c678dd">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">tap</span>  <span style="color:#e5c07b">int</span>           <span style="color:#7f848e">// index into vec</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">feed</span> <span style="color:#e5c07b">int</span>           <span style="color:#7f848e">// index into vec</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">vec</span>  [<span style="color:#e06c75">rngLen</span>]<span style="color:#e5c07b">int64</span> <span style="color:#7f848e">// current feedback register</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>看下接口 <strong>Source</strong>的定义。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// A Source represents a source of uniformly-distributed</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// pseudo-random int64 values in the range [0, 1&lt;&lt;63).</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">//</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// A Source is not safe for concurrent use by multiple goroutines.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">type</span> <span style="color:#e06c75">Source</span> <span style="color:#c678dd">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">Int63</span>() <span style="color:#e5c07b">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">Seed</span>(<span style="color:#e06c75">seed</span> <span style="color:#e5c07b">int64</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><u><font color=*#0099ff size=4 face="黑体">从 newSource 中，可以看到调用了 <code>rng.Seed(seed)</code> ，即 rngSource 的 Seed ，这个就是随机器初始化的核心函数。</font></u></p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">const</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rngLen</span>   = <span style="color:#d19a66">607</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rngTap</span>   = <span style="color:#d19a66">273</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rngMax</span>   = <span style="color:#d19a66">1</span> <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">63</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rngMask</span>  = <span style="color:#e06c75">rngMax</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">int32max</span> = (<span style="color:#d19a66">1</span> <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">31</span>) <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// Seed uses the provided seed value to initialize the generator to a deterministic state.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">rng</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">rngSource</span>) <span style="color:#61afef;font-weight:bold">Seed</span>(<span style="color:#e06c75">seed</span> <span style="color:#e5c07b">int64</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">tap</span> = <span style="color:#d19a66">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">feed</span> = <span style="color:#e06c75">rngLen</span> <span style="color:#56b6c2">-</span> <span style="color:#e06c75">rngTap</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">seed</span> = <span style="color:#e06c75">seed</span> <span style="color:#56b6c2">%</span> <span style="color:#e06c75">int32max</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">seed</span> &lt; <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">seed</span> <span style="color:#56b6c2">+=</span> <span style="color:#e06c75">int32max</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">seed</span> <span style="color:#56b6c2">==</span> <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">seed</span> = <span style="color:#d19a66">89482311</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">x</span> <span style="color:#56b6c2">:=</span> <span style="color:#e5c07b">int32</span>(<span style="color:#e06c75">seed</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">for</span> <span style="color:#e06c75">i</span> <span style="color:#56b6c2">:=</span> <span style="color:#56b6c2">-</span><span style="color:#d19a66">20</span>; <span style="color:#e06c75">i</span> &lt; <span style="color:#e06c75">rngLen</span>; <span style="color:#e06c75">i</span><span style="color:#56b6c2">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">x</span> = <span style="color:#61afef;font-weight:bold">seedrand</span>(<span style="color:#e06c75">x</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">if</span> <span style="color:#e06c75">i</span> <span style="color:#56b6c2">&gt;=</span> <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#c678dd">var</span> <span style="color:#e06c75">u</span> <span style="color:#e5c07b">int64</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">u</span> = <span style="color:#e5c07b">int64</span>(<span style="color:#e06c75">x</span>) <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">40</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">x</span> = <span style="color:#61afef;font-weight:bold">seedrand</span>(<span style="color:#e06c75">x</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">u</span> ^= <span style="color:#e5c07b">int64</span>(<span style="color:#e06c75">x</span>) <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">20</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">x</span> = <span style="color:#61afef;font-weight:bold">seedrand</span>(<span style="color:#e06c75">x</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">u</span> ^= <span style="color:#e5c07b">int64</span>(<span style="color:#e06c75">x</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">u</span> ^= <span style="color:#e06c75">rngCooked</span>[<span style="color:#e06c75">i</span>]
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">vec</span>[<span style="color:#e06c75">i</span>] = <span style="color:#e06c75">u</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// seed rng x[n+1] = 48271 * x[n] mod (2**31 - 1)</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">seedrand</span>(<span style="color:#e06c75">x</span> <span style="color:#e5c07b">int32</span>) <span style="color:#e5c07b">int32</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">const</span> (
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">A</span> = <span style="color:#d19a66">48271</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">Q</span> = <span style="color:#d19a66">44488</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">R</span> = <span style="color:#d19a66">3399</span>
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">hi</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">x</span> <span style="color:#56b6c2">/</span> <span style="color:#e06c75">Q</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">lo</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">x</span> <span style="color:#56b6c2">%</span> <span style="color:#e06c75">Q</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">x</span> = <span style="color:#e06c75">A</span><span style="color:#56b6c2">*</span><span style="color:#e06c75">lo</span> <span style="color:#56b6c2">-</span> <span style="color:#e06c75">R</span><span style="color:#56b6c2">*</span><span style="color:#e06c75">hi</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">x</span> &lt; <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">x</span> <span style="color:#56b6c2">+=</span> <span style="color:#e06c75">int32max</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#e06c75">x</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>通过逻辑可以看出，调用 <strong>rand.Seed</strong> 来设置种子, 其实就是给 <strong>rng.vec</strong> 的 <strong>607</strong> 个槽设置对应的值。通过上面的源码那可以看出来, <strong>rand.Seed</strong> 会调用一个 <strong>seedrand</strong> 的函数, 来计算对应槽的值。这个函数的计算结果并不是随机的，而是根据 seed 实际算出来的，另外这个函数并不是随便写的，是有相关的数学证明的。
+这也导致了相同的 seed，最终设置到 <strong>rng.vec</strong> 里面的值是相同的。
+总结下，随机器初始化的逻辑其实就是为了进行 <strong>rng.tap</strong>、<strong>rng.feed</strong>、 <strong>rng.vec</strong> 的初始化工作。
+其中，需要特别注意的是：
+<strong>相同的seed种子</strong> 或者 <strong>seed种子取模int32最大值后相等</strong>；
+这两种情况都会导致最终设置到 rng.vec 里面的值是相同的。</p>
+<hr>
+<p>以上就是随机器初始化，接下来看下随机数是如何产生的。
+<strong>从<code>r.Intn(314)</code> 开始解析。</strong>
+以 <code>rand.Intn()</code> 为例，看下具体的实现。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// Intn returns, as an int, a non-negative pseudo-random number in the half-open interval [0,n).</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// It panics if n &lt;= 0.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">r</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">Rand</span>) <span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#e06c75">n</span> <span style="color:#e5c07b">int</span>) <span style="color:#e5c07b">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">n</span> <span style="color:#56b6c2">&lt;=</span> <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;invalid argument to Intn&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">n</span> <span style="color:#56b6c2">&lt;=</span> <span style="color:#d19a66">1</span><span style="color:#56b6c2">&lt;&lt;</span><span style="color:#d19a66">31</span><span style="color:#56b6c2">-</span><span style="color:#d19a66">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">return</span> <span style="color:#e5c07b">int</span>(<span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Int31n</span>(<span style="color:#e5c07b">int32</span>(<span style="color:#e06c75">n</span>)))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#e5c07b">int</span>(<span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Int63n</span>(<span style="color:#e5c07b">int64</span>(<span style="color:#e06c75">n</span>)))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>查看源码可了解到，小于等于 <code>MaxInt32</code> 的值调用的是 <code>r.Int31n</code> 。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// Int31n returns, as an int32, a non-negative pseudo-random number in the half-open interval [0,n).</span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// It panics if n &lt;= 0.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">r</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">Rand</span>) <span style="color:#61afef;font-weight:bold">Int31n</span>(<span style="color:#e06c75">n</span> <span style="color:#e5c07b">int32</span>) <span style="color:#e5c07b">int32</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">n</span> <span style="color:#56b6c2">&lt;=</span> <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;invalid argument to Int31n&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">n</span><span style="color:#56b6c2">&amp;</span>(<span style="color:#e06c75">n</span><span style="color:#56b6c2">-</span><span style="color:#d19a66">1</span>) <span style="color:#56b6c2">==</span> <span style="color:#d19a66">0</span> { <span style="color:#7f848e">// n is power of two, can mask</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">return</span> <span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Int31</span>() <span style="color:#56b6c2">&amp;</span> (<span style="color:#e06c75">n</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">max</span> <span style="color:#56b6c2">:=</span> <span style="color:#e5c07b">int32</span>((<span style="color:#d19a66">1</span> <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">31</span>) <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span> <span style="color:#56b6c2">-</span> (<span style="color:#d19a66">1</span><span style="color:#56b6c2">&lt;&lt;</span><span style="color:#d19a66">31</span>)<span style="color:#56b6c2">%</span><span style="color:#e5c07b">uint32</span>(<span style="color:#e06c75">n</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">v</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Int31</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">for</span> <span style="color:#e06c75">v</span> &gt; <span style="color:#e06c75">max</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">v</span> = <span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Int31</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#e06c75">v</span> <span style="color:#56b6c2">%</span> <span style="color:#e06c75">n</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>如果传入的值是2的幂次方，则调用的 <code>r.Int31() &amp; (n - 1)</code> ；</p>
+<p>因为传入的314不是2的幂次方，所以走的是 <code>max := int32((1 &lt;&lt; 31) - 1 - (1&lt;&lt;31)%uint32(n))</code> 下面的逻辑。</p>
+<p>针对 max 这个逻辑，需要理解它的用途，它其实是将 <strong>int32</strong>  <code>0, (1 &lt;&lt; 31) - 1</code> 范围内尾部，“取模后”，不能覆盖  <code>[0, n) </code> 的数值去掉，这样就保证了  <code>[0, n) </code> 内各个数值出现的概率是一致的。举例如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">var</span> <span style="color:#e06c75">n</span> <span style="color:#e5c07b">int32</span> = <span style="color:#d19a66">314</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">tail</span> <span style="color:#56b6c2">:=</span> (<span style="color:#d19a66">1</span> <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">31</span>) <span style="color:#56b6c2">%</span> <span style="color:#e5c07b">uint32</span>(<span style="color:#e06c75">n</span>)
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">max</span> <span style="color:#56b6c2">:=</span> <span style="color:#e5c07b">int32</span>((<span style="color:#d19a66">1</span> <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">31</span>) <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span> <span style="color:#56b6c2">-</span> (<span style="color:#d19a66">1</span><span style="color:#56b6c2">&lt;&lt;</span><span style="color:#d19a66">31</span>)<span style="color:#56b6c2">%</span><span style="color:#e5c07b">uint32</span>(<span style="color:#e06c75">n</span>))
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">tail</span>)    <span style="color:#7f848e">// 282</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">max</span>)     <span style="color:#7f848e">// 2147483365</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">max</span> <span style="color:#56b6c2">%</span> <span style="color:#e06c75">n</span>) <span style="color:#7f848e">// 313</span>
+</span></span></code></pre></div><p>继续往下看逻辑，无论是不是2的幂次方，最终都会调用到   <code>r.Int31() </code> ，所以需要看 <code>r.Int31() </code> 的具体实现。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// Int31 returns a non-negative pseudo-random 31-bit integer as an int32.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">r</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">Rand</span>) <span style="color:#61afef;font-weight:bold">Int31</span>() <span style="color:#e5c07b">int32</span> { <span style="color:#c678dd">return</span> <span style="color:#e5c07b">int32</span>(<span style="color:#e06c75">r</span>.<span style="color:#61afef;font-weight:bold">Int63</span>() <span style="color:#56b6c2">&gt;&gt;</span> <span style="color:#d19a66">32</span>) }
+</span></span></code></pre></div><p><code>r.Int31() </code>  中调用的是   <code>r.Int63() </code> ，然后取结果的高31位作为 <strong>int32</strong> 随机值，下面看 <code>r.Int63() </code> 的实现。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">r</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">Rand</span>) <span style="color:#61afef;font-weight:bold">Int63</span>() <span style="color:#e5c07b">int64</span> { <span style="color:#c678dd">return</span> <span style="color:#e06c75">r</span>.<span style="color:#e06c75">src</span>.<span style="color:#61afef;font-weight:bold">Int63</span>() }
+</span></span></code></pre></div><p>可以看到，最终调用的是 <code>r.src.Int63()</code> 。</p>
+<p>看下Rand的定义，因为上面已经分析出了Rand的src的具体实现就是 <strong>rngSource</strong>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// A Rand is a source of random numbers.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">type</span> <span style="color:#e06c75">Rand</span> <span style="color:#c678dd">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">src</span> <span style="color:#e06c75">Source</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">s64</span> <span style="color:#e06c75">Source64</span> <span style="color:#7f848e">// non-nil if src is source64</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// readVal contains remainder of 63-bit integer used for bytes</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// generation during most recent Read call.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// It is saved so next Read call can start where the previous</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// one finished.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">readVal</span> <span style="color:#e5c07b">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// readPos indicates the number of low-order bytes of readVal</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// that are still valid.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">readPos</span> <span style="color:#e5c07b">int8</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>因此，随机数的产生调用的就是 <strong>rngSource</strong> 结构体的 <strong>Int63</strong> 函数。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">rng</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">rngSource</span>) <span style="color:#61afef;font-weight:bold">Int63</span>() <span style="color:#e5c07b">int64</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#e5c07b">int64</span>(<span style="color:#e06c75">rng</span>.<span style="color:#61afef;font-weight:bold">Uint64</span>() <span style="color:#56b6c2">&amp;</span> <span style="color:#e06c75">rngMask</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>其中 <strong>rngMask</strong> 表示 Int64 的最大值，作用是作为掩码。</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">rngMax</span>   = <span style="color:#d19a66">1</span> <span style="color:#56b6c2">&lt;&lt;</span> <span style="color:#d19a66">63</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">rngMask</span>  = <span style="color:#e06c75">rngMax</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>
+</span></span></code></pre></div><p><u><font color=*#0099ff size=4 face="黑体">而  <code>rng.Uint64()</code> ，则是产生随机数的核心函数；它的核心逻辑就是从数组 <code>rngSource.vec</code> 中取出随机数。</font></u></p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// Uint64 returns a non-negative pseudo-random 64-bit integer as an uint64.</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> (<span style="color:#e06c75">rng</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">rngSource</span>) <span style="color:#61afef;font-weight:bold">Uint64</span>() <span style="color:#e5c07b">uint64</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">tap</span><span style="color:#56b6c2">--</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">rng</span>.<span style="color:#e06c75">tap</span> &lt; <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">tap</span> <span style="color:#56b6c2">+=</span> <span style="color:#e06c75">rngLen</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">feed</span><span style="color:#56b6c2">--</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">rng</span>.<span style="color:#e06c75">feed</span> &lt; <span style="color:#d19a66">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">feed</span> <span style="color:#56b6c2">+=</span> <span style="color:#e06c75">rngLen</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">x</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">rng</span>.<span style="color:#e06c75">vec</span>[<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">feed</span>] <span style="color:#56b6c2">+</span> <span style="color:#e06c75">rng</span>.<span style="color:#e06c75">vec</span>[<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">tap</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">vec</span>[<span style="color:#e06c75">rng</span>.<span style="color:#e06c75">feed</span>] = <span style="color:#e06c75">x</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#e5c07b">uint64</span>(<span style="color:#e06c75">x</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>实际上，调用 <code>Intn(), Int31n(), Int63(), Int63n()</code> 等其他随机函数，最终调用到都是函数 <code>rngSource.Uint64()</code> 。<strong>可以看到每次调用就是利用 rng.feed, rng.tap 从 rng.vec 中取到两个值相加的结果返回，同时这个结果又重新放入 rng.vec</strong>。这样做的目的是，让随机数更加丰富随机，而不是仅局限于 rng.vec 数组中的值。</p>
+<h2 id="源码总结">源码总结
+</h2><p>通过以上的源码分析，可以总结出以下几点：</p>
+<ol>
+<li><strong>rand.New 初始化出来的 rand 不是并发安全的。</strong> 因为每次利用 rng.feed, rng.tap 从 rng.vec 中取到随机值后会将随机值重新放入 rng.vec，当多 goroutine 同时调用时就会有数据竞争问题。如果想并发安全，可以使用全局的随机数发生器 rand.globalRand，它是基于lockedSource实现的，进行了加锁的逻辑。</li>
+<li><strong>相同seed种子，每次运行的结果是一样的。</strong> 因为随机数是从 rng.vec 数组中取出来的，这个数组是根据种子生成的，相同的种子生成的 rng.vec 数组是相同的。</li>
+<li><strong>不同seed种子，每次运行的结果可能一样。</strong> 因为根据种子生成 rng.vec 数组时会有一个对int32最大值取模的操作，模后的结果可能相同，也就是两个种子如果相差int32的最大值，就会导致 rng.vec 数组相同。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">r1</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">NewSource</span>(<span style="color:#d19a66">1111</span>))
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">r2</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">NewSource</span>(<span style="color:#d19a66">1111</span> <span style="color:#56b6c2">+</span> <span style="color:#e06c75">math</span>.<span style="color:#e06c75">MaxInt32</span>))
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;第一个随机器：&#34;</span>, <span style="color:#e06c75">r1</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">10000</span>))  <span style="color:#7f848e">// 第一个随机器： 9241</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;第一个随机器：&#34;</span>, <span style="color:#e06c75">r1</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">10000</span>))  <span style="color:#7f848e">// 第一个随机器： 8842</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;第一个随机器：&#34;</span>, <span style="color:#e06c75">r1</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">10000</span>))  <span style="color:#7f848e">// 第一个随机器： 2221</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;第二个随机器：&#34;</span>, <span style="color:#e06c75">r2</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">10000</span>))  <span style="color:#7f848e">// 第二个随机器： 9241</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;第二个随机器：&#34;</span>, <span style="color:#e06c75">r2</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">10000</span>))  <span style="color:#7f848e">// 第二个随机器： 8842</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;第二个随机器：&#34;</span>, <span style="color:#e06c75">r2</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#d19a66">10000</span>))  <span style="color:#7f848e">// 第二个随机器： 2221</span>
+</span></span></code></pre></div>
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/golang/">Golang</a>
+        
+            <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="has-image">
+    <a href="/p/defer/">
+        
+        
+            <div class="article-image">
+                <img src="/p/defer/2.33f6797504705fd4ac3d2f964ea2011b_hu_b0bcc52a2ea7a60f.png" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post defer"
+                        
+                        data-hash="md5-M/Z5dQRwX9SsPS&#43;WTqIBGw==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">defer</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2025 Ycz
+    </section>
+    
+    <section class="powerby">
+        
+            既往不恋，当下不杂，未来不迎。 <br/>
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

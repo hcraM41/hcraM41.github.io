@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content=" Golang defer延迟语句详解">
+<title>defer</title>
+
+<link rel='canonical' href='https://hcraM41.github.io/p/defer/'>
+
+<link rel="stylesheet" href="/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="defer">
+<meta property='og:description' content=" Golang defer延迟语句详解">
+<meta property='og:url' content='https://hcraM41.github.io/p/defer/'>
+<meta property='og:site_name' content='14March'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Golang' /><meta property='article:published_time' content='2025-05-10T23:03:15&#43;08:00'/><meta property='article:modified_time' content='2025-05-10T23:03:15&#43;08:00'/><meta property='og:image' content='https://hcraM41.github.io/p/defer/2.png' />
+<meta name="twitter:title" content="defer">
+<meta name="twitter:description" content=" Golang defer延迟语句详解"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://hcraM41.github.io/p/defer/2.png' />
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_af7373fba2061c7e.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">💭</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">14March</a></h1>
+            <h2 class="site-description">Game Developer</h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://github.com/hcraM41'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#一defer的简单使用">一、defer的简单使用</a></li>
+    <li><a href="#二defer的函数参数与闭包引用">二、defer的函数参数与闭包引用</a></li>
+    <li><a href="#三defer的语句拆解">三、defer的语句拆解</a></li>
+    <li><a href="#四defer中的recover">四、defer中的recover</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/defer/">
+                <img src="/p/defer/2_hu_822b77060b767c77.png"
+                        srcset="/p/defer/2_hu_822b77060b767c77.png 800w, /p/defer/2_hu_3f4e19debd4ea6f3.png 1600w"
+                        width="800" 
+                        height="288" 
+                        loading="lazy"
+                        alt="Featured image of post defer" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/golang/" >
+                Golang
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/defer/">defer</a>
+        </h2>
+    
+        
+        <h3 class="article-subtitle">
+             Golang defer延迟语句详解
+        </h3>
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">May 10, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 7 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="一defer的简单使用">一、defer的简单使用
+</h2><p><code>defer</code> 拥有注册延迟调用的机制，<strong><code>defer</code> 关键字后面跟随的语句或者函数，会在当前的函数<code>return</code> 正常结束 或者 <code>panic</code> 异常结束 后执行。</strong></p>
+<p>但是<code>defer</code> 只有在注册后，最后才能生效调用执行，<code>return</code> 之后的<code>defer</code> 语句是不会执行的，因为并没有注册成功。</p>
+<p>如下例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#d19a66">111</span>)
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#d19a66">222</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#d19a66">333</span>)
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#d19a66">222</span>
+</span></span><span style="display:flex;"><span><span style="color:#d19a66">111</span>
+</span></span></code></pre></div><p>解析：<code>222</code> 、<code>111</code> 是在<code>return</code> 之前注册的，所以如期执行，<code>333</code> 是在<code>return </code> 之后注册的，注册失败，执行不了。</p>
+<p><code>defer</code> 在需要资源释放的场景非常有用，可以很方便地在函数结束前执行一些操作。</p>
+<p>比如在 打开连接/关闭连接 、加锁/释放锁、打开文件/关闭文件 这些场景下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">file</span>, <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">os</span>.<span style="color:#61afef;font-weight:bold">Open</span>(<span style="color:#98c379">&#34;1.txt&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#e5c07b">panic</span>(<span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">if</span> <span style="color:#e06c75">file</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#c678dd">defer</span> <span style="color:#e06c75">file</span>.<span style="color:#61afef;font-weight:bold">Close</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这里要注意的是：在调用<code>file.Close()</code> 之前，需要判断<code>file</code> 是否为空，避免出现异常情况。</p>
+<p>再来看一个错误示范，没有正确使用<code>defer</code> 的例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">player</span>.<span style="color:#e06c75">mu</span>.<span style="color:#61afef;font-weight:bold">Lock</span>()
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">rand</span>.<span style="color:#61afef;font-weight:bold">Intn</span>(<span style="color:#e06c75">number</span>)
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">player</span>.<span style="color:#e06c75">mu</span>.<span style="color:#61afef;font-weight:bold">Unlock</span>()
+</span></span></code></pre></div><p>这三行代码，存在两个问题：
+1. 中间这行代码<code> rand.Intn(number)</code> 是有可能发生<code>panic</code> 的，这就会导致没有正常解锁。
+2. 这样的代码在项目中后续可能被其他人修改，在<code>rand.Intn(number)</code> 后增加更多的逻辑，这是完全不可控的。</p>
+<p>在<code>Lock</code> 和 <code>Unlock</code> 之间的代码一旦出现 <code>panic</code> ，就会造成死锁。因此，即使逻辑非常简单，使用<code>defer</code> 也是很有必要的，因为需求总在变化，代码也总会被修改。</p>
+<hr>
+<h2 id="二defer的函数参数与闭包引用">二、defer的函数参数与闭包引用
+</h2><p><code>defer</code> 延迟语句不会马上执行，而是会进入一个栈，函数<code>return</code> 前，会按<strong>先进后出</strong>的顺序执行。</p>
+<p>先进后出的原因是后面定义的函数可能会依赖前面的资源，自然要先执行；否则，如果前面的先执行了，那么后面函数的依赖就没有了，就可能会导致出错。</p>
+<p><u><font color=*#0099ff size=4 face="黑体">在<code>defer</code> 函数定义时，对外部变量的引用有三种方式：值传参、指针传参、闭包引用。</font></u></p>
+<ol>
+<li><strong>值传参：在<code>defer</code> 定义时就把值传递给<code>defer</code> ，并复制一份cache起来，defer调用时和定义的时候值是一致的。</strong></li>
+<li><strong>指针传参：在<code>defer</code> 定义时就把指针传递给<code>defer</code> ，defer调用时根据整个上下文确定参数当前的值。</strong></li>
+<li><strong>闭包引用：在<code>defer</code> 定义时就把值引用传递给<code>defer</code> ，defer调用时根据整个上下文确定参数当前的值。</strong></li>
+</ol>
+<p>下面通过例子加深一下理解。</p>
+<p>例子1：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">arr</span> [<span style="color:#d19a66">4</span>]<span style="color:#c678dd">struct</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">for</span> <span style="color:#e06c75">i</span> <span style="color:#56b6c2">:=</span> <span style="color:#c678dd">range</span> <span style="color:#e06c75">arr</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">i</span>)
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#d19a66">3</span>
+</span></span></code></pre></div><p>解析：因为<code>defer</code> 后面跟着的是一个闭包，根据整个上下文确定，<code>for</code> 循环结束后<code>i</code> 的值为3，因此最后打印了4个3。</p>
+<p>例子2：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">n</span> <span style="color:#e5c07b">int</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 值传参</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">n1</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">n1</span>)
+</span></span><span style="display:flex;"><span>	}(<span style="color:#e06c75">n</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 指针传参</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">n2</span> <span style="color:#56b6c2">*</span><span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#56b6c2">*</span><span style="color:#e06c75">n2</span>)
+</span></span><span style="display:flex;"><span>	}(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">n</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 闭包</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">n</span>)
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">n</span> = <span style="color:#d19a66">4</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#d19a66">4</span>
+</span></span><span style="display:flex;"><span><span style="color:#d19a66">4</span>
+</span></span><span style="display:flex;"><span><span style="color:#d19a66">0</span>
+</span></span></code></pre></div><p>解析：</p>
+<p><code>defer</code> 执行顺序和定义的顺序是相反的；</p>
+<p>第三个<code>defer</code> 语句是闭包，引用的外部变量<code>n</code> ，defer调用时根据上下文确定，最终结果是4；</p>
+<p>第二个<code>defer</code> 语句是指针传参，defer调用时根据整个上下文确定参数当前的值，最终结果是4；</p>
+<p>第一个<code>defer</code> 语句是值传参，defer调用时和定义的时候值是一致的，最终结果是0；</p>
+<p>例子3：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 文件1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">f</span>, <span style="color:#e06c75">_</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">os</span>.<span style="color:#61afef;font-weight:bold">Open</span>(<span style="color:#98c379">&#34;1.txt&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">f</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">f</span> <span style="color:#e06c75">io</span>.<span style="color:#e06c75">Closer</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">f</span>.<span style="color:#61afef;font-weight:bold">Close</span>(); <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Printf</span>(<span style="color:#98c379">&#34;defer close file err 1 %v\n&#34;</span>, <span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}(<span style="color:#e06c75">f</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 文件2</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">f</span>, <span style="color:#e06c75">_</span> = <span style="color:#e06c75">os</span>.<span style="color:#61afef;font-weight:bold">Open</span>(<span style="color:#98c379">&#34;2.txt&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">f</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">f</span> <span style="color:#e06c75">io</span>.<span style="color:#e06c75">Closer</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">f</span>.<span style="color:#61afef;font-weight:bold">Close</span>(); <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Printf</span>(<span style="color:#98c379">&#34;defer close file err 2 %v\n&#34;</span>, <span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}(<span style="color:#e06c75">f</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;success&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">success</span>
+</span></span></code></pre></div><p>解析：先说结论，这个例子的代码没有问题，两个文件都会被成功关闭。这个是对<code>defer</code> 原理的应用，因为<code>defer</code> 函数在定义的时候，参数就已经复制进去了，这里是值传参，真正执行<code>close()</code> 函数的时候就刚好关闭的是正确的文件。如果不把<code>f</code> 当做值传参，最后两个<code>close()</code> 函数关闭的就是同一个文件了，都是最后打开的那个文件。</p>
+<p>例子3的错误示范：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 文件1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">f</span>, <span style="color:#e06c75">_</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">os</span>.<span style="color:#61afef;font-weight:bold">Open</span>(<span style="color:#98c379">&#34;1.txt&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">f</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">f</span>.<span style="color:#61afef;font-weight:bold">Close</span>(); <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Printf</span>(<span style="color:#98c379">&#34;defer close file err 1 %v\n&#34;</span>, <span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 文件2</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">f</span>, <span style="color:#e06c75">_</span> = <span style="color:#e06c75">os</span>.<span style="color:#61afef;font-weight:bold">Open</span>(<span style="color:#98c379">&#34;2.txt&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">f</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e06c75">f</span>.<span style="color:#61afef;font-weight:bold">Close</span>(); <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Printf</span>(<span style="color:#98c379">&#34;defer close file err 2 %v\n&#34;</span>, <span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;success&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">success</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">defer</span> <span style="color:#e06c75">close</span> <span style="color:#e06c75">file</span> <span style="color:#e06c75">err</span> <span style="color:#d19a66">1</span> <span style="color:#e06c75">close</span> <span style="color:#d19a66">2.</span><span style="color:#e06c75">txt</span>: <span style="color:#e06c75">file</span> <span style="color:#e06c75">already</span> <span style="color:#e06c75">closed</span>
+</span></span></code></pre></div><p>例子4：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#7f848e">// 值传参</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func1</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">err</span> <span style="color:#e5c07b">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">err</span> = <span style="color:#e06c75">errors</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#98c379">&#34;func1 error&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// 闭包</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func2</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">err</span> <span style="color:#e5c07b">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">err</span> = <span style="color:#e06c75">errors</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#98c379">&#34;func2 error&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// 值传参</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func3</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">err</span> <span style="color:#e5c07b">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">err</span> <span style="color:#e5c07b">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>	}(<span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">err</span> = <span style="color:#e06c75">errors</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#98c379">&#34;func3 error&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#7f848e">// 指针传参</span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func4</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">var</span> <span style="color:#e06c75">err</span> <span style="color:#e5c07b">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">err</span> <span style="color:#56b6c2">*</span><span style="color:#e5c07b">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#56b6c2">*</span><span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>	}(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">err</span> = <span style="color:#e06c75">errors</span>.<span style="color:#61afef;font-weight:bold">New</span>(<span style="color:#98c379">&#34;func4 error&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">func1</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">func2</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">func3</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">func4</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>&lt;<span style="color:#e5c07b">nil</span>&gt;
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">func2</span> <span style="color:#e5c07b">error</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#e5c07b">nil</span>&gt;
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">func4</span> <span style="color:#e5c07b">error</span>
+</span></span></code></pre></div><p>解析：</p>
+<p>第一个和第三个函数中，都是作为参数，进行值传参，<code>err</code> 在定义的时候就会求值，因为定义的时候值都是<code>nil</code> ，所以最后的结果都是<code>nil</code> ；</p>
+<p>第二个函数的参数在定义的时候也求值了，但是它是个闭包，查看上下文发现最后值被修改为<code>func2 error</code> ；</p>
+<p>第四个函数是指针传参，最后值被修改为<code>func4 error</code> ；</p>
+<p><strong>现实中，第三个函数闭包的例子是比较容易犯的错误，导致最后<code>defer</code> 语句没有起到作用，造成生产上的事故，需要特别注意。</strong></p>
+<hr>
+<h2 id="三defer的语句拆解">三、defer的语句拆解
+</h2><p>从返回值出发来拆解延迟语句 <code>defer</code> 。</p>
+<p>​	<code>return xxx</code></p>
+<p>这条语句经过编译之后，实际上生成了三条指令：</p>
+<ol>
+<li><strong>返回值 = xxx</strong></li>
+<li><strong>调用 defer 函数</strong></li>
+<li><strong>空的 return</strong></li>
+</ol>
+<p>其中，<code>1</code> 和 <code>3</code> 是<code>return</code> 语句生成的指令，<code>2</code> 是<code>defer</code> 语句生成的指令。可以看出：</p>
+<p><strong><code>return</code> 并不是一条原子指令；<code>defer</code> 语句在第二步调用，这里可能操作返回值，从而影响最终结果。</strong></p>
+<p>接下来通过例子来加深理解。</p>
+<p>例子1：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func1</span>() (<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">t</span> <span style="color:#56b6c2">:=</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">t</span> = <span style="color:#e06c75">t</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#e06c75">t</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#61afef;font-weight:bold">func1</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#d19a66">3</span>
+</span></span></code></pre></div><p>语句拆解：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func1</span>() (<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">t</span> <span style="color:#56b6c2">:=</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 1.返回值=xxx：赋值指令</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> = <span style="color:#e06c75">t</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 2.调用defer函数：defer在赋值与返回之前执行，这个例子中返回值r没有被修改过</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">t</span> = <span style="color:#e06c75">t</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 3.空的return</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#61afef;font-weight:bold">func1</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>解析：因为第二个步骤里并没有操作返回值<code>r</code> ，所以最终得到的结果是<code>3</code> 。</p>
+<p>例子2：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func2</span>() (<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>(<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">r</span> = <span style="color:#e06c75">r</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	}(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#d19a66">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#61afef;font-weight:bold">func2</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#d19a66">1</span>
+</span></span></code></pre></div><p>语句拆解：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func2</span>() (<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 1.返回值=xxx：赋值指令</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> = <span style="color:#d19a66">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 2.调用defer函数：因为是值传参，所以修改的r是个复制的值，不会影响要返回的那个r值。</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">func</span>(<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">r</span> = <span style="color:#e06c75">r</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	}(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 3.空的return</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#61afef;font-weight:bold">func2</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>解析：因为第二个步骤里改变的是传值进去的<code>r</code> 值，是一个形参的复制值，不会影响实参<code>r</code> ，所以最终得到的结果是<code>1</code> 。</p>
+<p>例子3：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func3</span>() (<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">r</span> = <span style="color:#e06c75">r</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span> <span style="color:#d19a66">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#61afef;font-weight:bold">func3</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#d19a66">4</span>
+</span></span></code></pre></div><p>语句拆解：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func3</span>() (<span style="color:#e06c75">r</span> <span style="color:#e5c07b">int</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 1.返回值=xxx：赋值指令</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> = <span style="color:#d19a66">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 2.调用defer函数：因为是闭包，捕获的变量是引用传递，所以会修改返回的那个r值。</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">r</span> = <span style="color:#e06c75">r</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">3</span>
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#7f848e">// 3.空的return</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">r</span> <span style="color:#56b6c2">:=</span> <span style="color:#61afef;font-weight:bold">func3</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#e06c75">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>解析：因为第二个步骤里改变的<code>r</code> 值是闭包，闭包中捕获的变量是引用传递，不是值传递，所以最终得到的结果是<code>4</code> 。</p>
+<hr>
+<h2 id="四defer中的recover">四、defer中的recover
+</h2><p>代码中的<code>panic</code> 最终会被<code>recover</code> 捕获到。在日常开发中，可能某一条协议的逻辑触发了某一个<code>bug</code> 造成<code>panic</code> ，这时就可以用<code>recover</code> 去捕获<code>panic</code> ，稳住主流程，不影响其他协议的业务逻辑。</p>
+<p>需要注意的是，<strong><code>recover</code> 函数只在<code>defer</code> 的函数中直接调用才生效。</strong></p>
+<p>通过例子看<code>recover</code> 调用情况。</p>
+<p>例子1：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">func1</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e5c07b">recover</span>(); <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;func1 recover&#34;</span>, <span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#61afef;font-weight:bold">func1</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;func1 panic&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">func1</span> <span style="color:#e06c75">recover</span> <span style="color:#e06c75">func1</span> <span style="color:#e06c75">panic</span>
+</span></span></code></pre></div><p>解析：正确<code>recover</code> ，因为在<code>defer</code> 中调用的，所以可以生效。</p>
+<p>例子2：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e5c07b">recover</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;func2 panic&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">panic</span>: <span style="color:#e06c75">func2</span> <span style="color:#e06c75">panic</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">goroutine</span> <span style="color:#d19a66">1</span> [<span style="color:#e06c75">running</span>]:
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">main</span>.<span style="color:#61afef;font-weight:bold">main</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#e06c75">C</span>:<span style="color:#56b6c2">/</span><span style="color:#e06c75">Users</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">ycz</span><span style="color:#56b6c2">/</span><span style="color:#c678dd">go</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">ccc</span>.<span style="color:#c678dd">go</span>:<span style="color:#d19a66">5</span> <span style="color:#56b6c2">+</span><span style="color:#d19a66">0x31</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">exit</span> <span style="color:#e06c75">status</span> <span style="color:#d19a66">2</span>
+</span></span></code></pre></div><p>解析：错误<code>recover</code> ，直接调用<code>recover</code> ，返回<code>nil</code> 。</p>
+<p>例子3：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#e5c07b">recover</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;func3 panic&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">panic</span>: <span style="color:#e06c75">func3</span> <span style="color:#e06c75">panic</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">goroutine</span> <span style="color:#d19a66">1</span> [<span style="color:#e06c75">running</span>]:
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">main</span>.<span style="color:#61afef;font-weight:bold">main</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#e06c75">C</span>:<span style="color:#56b6c2">/</span><span style="color:#e06c75">Users</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">ycz</span><span style="color:#56b6c2">/</span><span style="color:#c678dd">go</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">ccc</span>.<span style="color:#c678dd">go</span>:<span style="color:#d19a66">5</span> <span style="color:#56b6c2">+</span><span style="color:#d19a66">0x65</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">exit</span> <span style="color:#e06c75">status</span> <span style="color:#d19a66">2</span>
+</span></span></code></pre></div><p>解析：错误<code>recover</code> ，<code>recover</code> 需要在<code>defer</code> 的函数里调用。</p>
+<p>例子4：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#e5c07b">recover</span>()
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>	<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;func4 panic&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e06c75">panic</span>: <span style="color:#e06c75">func4</span> <span style="color:#e06c75">panic</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">goroutine</span> <span style="color:#d19a66">1</span> [<span style="color:#e06c75">running</span>]:
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">main</span>.<span style="color:#61afef;font-weight:bold">main</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#e06c75">C</span>:<span style="color:#56b6c2">/</span><span style="color:#e06c75">Users</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">ycz</span><span style="color:#56b6c2">/</span><span style="color:#c678dd">go</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">ccc</span>.<span style="color:#c678dd">go</span>:<span style="color:#d19a66">9</span> <span style="color:#56b6c2">+</span><span style="color:#d19a66">0x49</span>
+</span></span><span style="display:flex;"><span><span style="color:#e06c75">exit</span> <span style="color:#e06c75">status</span> <span style="color:#d19a66">2</span>
+</span></span></code></pre></div><p>解析：错误<code>recover</code> ，不能在多重<code>defer</code> 嵌套里调用<code>recover</code> 。</p>
+<p>另外需要注意的一点是，<strong>父<code>goroutine</code> 无法 <code>recover</code> 住 子<code>goroutine</code> 的 <code>panic</code> 。</strong></p>
+<p>原因是，<code>goroutine</code> 被设计为一个独立的代码执行单元，拥有自己的执行栈，不与其他<code>goroutine</code> 共享任何的数据。</p>
+<p>也就是说，无法让<code>goroutine</code> 拥有返回值，也无法让<code>goroutine</code> 拥有自身的<code>ID</code> 编号。</p>
+<p>如果希望有一个全局的<code>panic</code> 捕获中心，那么可以通过<code>channel</code> 来实现，如下示例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#c678dd">var</span> <span style="color:#e06c75">panicNotifyManage</span> <span style="color:#c678dd">chan</span> <span style="color:#c678dd">interface</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">StartGlobalPanicRecover</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">panicNotifyManage</span> = <span style="color:#e5c07b">make</span>(<span style="color:#c678dd">chan</span> <span style="color:#c678dd">interface</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">go</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">select</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">case</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#56b6c2">&lt;-</span><span style="color:#e06c75">panicNotifyManage</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#e06c75">fmt</span>.<span style="color:#61afef;font-weight:bold">Println</span>(<span style="color:#98c379">&#34;panicNotifyManage---&gt;&#34;</span>, <span style="color:#e06c75">err</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">GoSafe</span>(<span style="color:#e06c75">f</span> <span style="color:#c678dd">func</span>()) {
+</span></span><span style="display:flex;"><span>	<span style="color:#c678dd">go</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#c678dd">defer</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#c678dd">if</span> <span style="color:#e06c75">err</span> <span style="color:#56b6c2">:=</span> <span style="color:#e5c07b">recover</span>(); <span style="color:#e06c75">err</span> <span style="color:#56b6c2">!=</span> <span style="color:#e5c07b">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#e06c75">panicNotifyManage</span> <span style="color:#56b6c2">&lt;-</span> <span style="color:#e06c75">err</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>		<span style="color:#61afef;font-weight:bold">f</span>()
+</span></span><span style="display:flex;"><span>	}()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#c678dd">func</span> <span style="color:#61afef;font-weight:bold">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">StartGlobalPanicRecover</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">f1</span> <span style="color:#56b6c2">:=</span> <span style="color:#c678dd">func</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#e5c07b">panic</span>(<span style="color:#98c379">&#34;f1 panic&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#61afef;font-weight:bold">GoSafe</span>(<span style="color:#e06c75">f1</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#e06c75">time</span>.<span style="color:#61afef;font-weight:bold">Sleep</span>(<span style="color:#e06c75">time</span>.<span style="color:#e06c75">Second</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>解析：<code>GoSafe()</code> 本质上是对<code>go</code> 关键字进行了一层封装，确保在执行并发单元前插入一个<code>defer</code> ，从而保证能够<code>recover</code> 住<code>panic</code> 。但是这个方案并不完美，如果开发人员不使用<code>GoSafe</code> 函数来创建<code>goroutine</code> ，而是自己创建，并且在代码中出现了<code>panic</code> ，那么仍然会造成程序崩溃。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/golang/">Golang</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="has-image">
+    <a href="/p/rand/">
+        
+        
+            <div class="article-image">
+                <img src="/p/rand/2.33f6797504705fd4ac3d2f964ea2011b_hu_b0bcc52a2ea7a60f.png" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post rand"
+                        
+                        data-hash="md5-M/Z5dQRwX9SsPS&#43;WTqIBGw==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">rand</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2025 Ycz
+    </section>
+    
+    <section class="powerby">
+        
+            既往不恋，当下不杂，未来不迎。 <br/>
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
