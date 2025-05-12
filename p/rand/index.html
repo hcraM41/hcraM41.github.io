@@ -6,7 +6,7 @@
 
 <link rel='canonical' href='http://localhost:1313/p/rand/'>
 
-<link rel="stylesheet" href="/scss/style.min.36252ed9407712eaeee06218633b5a6429e6a95c308b74c5cb2cac112cd725b9.css"><meta property='og:title' content="rand">
+<link rel="stylesheet" href="/scss/style.min.5b271e6fb0e4b5f908ddfd09947d02e5c3e1d9d42fe1c6497d03a091a817ad19.css"><meta property='og:title' content="rand">
 <meta property='og:description' content=" Golang rand包源码分析">
 <meta property='og:url' content='http://localhost:1313/p/rand/'>
 <meta property='og:site_name' content='14March'>
@@ -184,55 +184,18 @@
     
     <h2 id="源码剖析">源码剖析
 </h2><p>通过日常随机数的代码使用，看下rank包具体的底层实现：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">r</span> <span class="o">:=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">UnixNano</span><span class="p">()))</span> <span class="c1">// 初始化随机器</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">r</span> <span class="o">:=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">UnixNano</span><span class="p">()))</span> <span class="c1">// 初始化随机器</span>
 </span></span><span class="line"><span class="cl"><span class="nx">r</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">314</span><span class="p">)</span>	<span class="c1">// 生成 [0, 314) 内的整数</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><strong>从<code>r := rand.New(rand.NewSource(time.Now().UnixNano()))</code> 开始。</strong></p>
+</span></span></code></pre></div><p><strong>从<code>r := rand.New(rand.NewSource(time.Now().UnixNano()))</code> 开始。</strong></p>
 <p>初始化 Rand 的时候，通过<code>rand.New(rand.NewSource(seed))</code>创建，所以看下<code>rand.New()</code>的实现。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// New returns a new Rand that uses random values from src</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// New returns a new Rand that uses random values from src</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// to generate other random values.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="nx">src</span> <span class="nx">Source</span><span class="p">)</span> <span class="o">*</span><span class="nx">Rand</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">s64</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">src</span><span class="p">.(</span><span class="nx">Source64</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">Rand</span><span class="p">{</span><span class="nx">src</span><span class="p">:</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">s64</span><span class="p">:</span> <span class="nx">s64</span><span class="p">}</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>可以看到 <strong>Rand</strong> 使用的是<code>rand.NewSource()</code>传入的 <strong>Source</strong>，因此接着看下<code>rand.NewSource()</code>的实现。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// NewSource returns a new pseudo-random Source seeded with the given value.</span>
+</span></span></code></pre></div><p>可以看到 <strong>Rand</strong> 使用的是<code>rand.NewSource()</code>传入的 <strong>Source</strong>，因此接着看下<code>rand.NewSource()</code>的实现。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// NewSource returns a new pseudo-random Source seeded with the given value.</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// Unlike the default Source used by top-level functions, this source is not</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// safe for concurrent use by multiple goroutines.</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// The returned Source implements Source64.</span>
@@ -245,39 +208,14 @@
 </span></span><span class="line"><span class="cl">	<span class="nx">rng</span><span class="p">.</span><span class="nf">Seed</span><span class="p">(</span><span class="nx">seed</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">rng</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>看到 <strong>Source</strong> 的实际类型是 <strong>rngSource</strong>，实现了接口 <strong>Source</strong>。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">rngSource</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span></code></pre></div><p>看到 <strong>Source</strong> 的实际类型是 <strong>rngSource</strong>，实现了接口 <strong>Source</strong>。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">rngSource</span> <span class="kd">struct</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">tap</span>  <span class="kt">int</span>           <span class="c1">// index into vec</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">feed</span> <span class="kt">int</span>           <span class="c1">// index into vec</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">vec</span>  <span class="p">[</span><span class="nx">rngLen</span><span class="p">]</span><span class="kt">int64</span> <span class="c1">// current feedback register</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>看下接口 <strong>Source</strong>的定义。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// A Source represents a source of uniformly-distributed</span>
+</span></span></code></pre></div><p>看下接口 <strong>Source</strong>的定义。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// A Source represents a source of uniformly-distributed</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// pseudo-random int64 values in the range [0, 1&lt;&lt;63).</span>
 </span></span><span class="line"><span class="cl"><span class="c1">//</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// A Source is not safe for concurrent use by multiple goroutines.</span>
@@ -285,68 +223,8 @@
 </span></span><span class="line"><span class="cl">	<span class="nf">Int63</span><span class="p">()</span> <span class="kt">int64</span>
 </span></span><span class="line"><span class="cl">	<span class="nf">Seed</span><span class="p">(</span><span class="nx">seed</span> <span class="kt">int64</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><u><font color=*#0099ff size=4 face="黑体">从 newSource 中，可以看到调用了 <code>rng.Seed(seed)</code> ，即 rngSource 的 Seed ，这个就是随机器初始化的核心函数。</font></u></p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span><span class="lnt">44
-</span><span class="lnt">45
-</span><span class="lnt">46
-</span><span class="lnt">47
-</span><span class="lnt">48
-</span><span class="lnt">49
-</span><span class="lnt">50
-</span><span class="lnt">51
-</span><span class="lnt">52
-</span><span class="lnt">53
-</span><span class="lnt">54
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
+</span></span></code></pre></div><p><u><font color=*#0099ff size=4 face="黑体">从 newSource 中，可以看到调用了 <code>rng.Seed(seed)</code> ，即 rngSource 的 Seed ，这个就是随机器初始化的核心函数。</font></u></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">rngLen</span>   <span class="p">=</span> <span class="mi">607</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">rngTap</span>   <span class="p">=</span> <span class="mi">273</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">rngMax</span>   <span class="p">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">63</span>
@@ -400,9 +278,7 @@
 </span></span><span class="line"><span class="cl">	<span class="p">}</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">x</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>通过逻辑可以看出，调用 <strong>rand.Seed</strong> 来设置种子, 其实就是给 <strong>rng.vec</strong> 的 <strong>607</strong> 个槽设置对应的值。通过上面的源码那可以看出来, <strong>rand.Seed</strong> 会调用一个 <strong>seedrand</strong> 的函数, 来计算对应槽的值。这个函数的计算结果并不是随机的，而是根据 seed 实际算出来的，另外这个函数并不是随便写的，是有相关的数学证明的。
+</span></span></code></pre></div><p>通过逻辑可以看出，调用 <strong>rand.Seed</strong> 来设置种子, 其实就是给 <strong>rng.vec</strong> 的 <strong>607</strong> 个槽设置对应的值。通过上面的源码那可以看出来, <strong>rand.Seed</strong> 会调用一个 <strong>seedrand</strong> 的函数, 来计算对应槽的值。这个函数的计算结果并不是随机的，而是根据 seed 实际算出来的，另外这个函数并不是随便写的，是有相关的数学证明的。
 这也导致了相同的 seed，最终设置到 <strong>rng.vec</strong> 里面的值是相同的。
 总结下，随机器初始化的逻辑其实就是为了进行 <strong>rng.tap</strong>、<strong>rng.feed</strong>、 <strong>rng.vec</strong> 的初始化工作。
 其中，需要特别注意的是：
@@ -412,22 +288,7 @@
 <p>以上就是随机器初始化，接下来看下随机数是如何产生的。
 <strong>从<code>r.Intn(314)</code> 开始解析。</strong>
 以 <code>rand.Intn()</code> 为例，看下具体的实现。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Intn returns, as an int, a non-negative pseudo-random number in the half-open interval [0,n).</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Intn returns, as an int, a non-negative pseudo-random number in the half-open interval [0,n).</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// It panics if n &lt;= 0.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Rand</span><span class="p">)</span> <span class="nf">Intn</span><span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">n</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="p">{</span>
@@ -438,30 +299,8 @@
 </span></span><span class="line"><span class="cl">	<span class="p">}</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nf">Int63n</span><span class="p">(</span><span class="nb">int64</span><span class="p">(</span><span class="nx">n</span><span class="p">)))</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>查看源码可了解到，小于等于 <code>MaxInt32</code> 的值调用的是 <code>r.Int31n</code> 。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int31n returns, as an int32, a non-negative pseudo-random number in the half-open interval [0,n).</span>
+</span></span></code></pre></div><p>查看源码可了解到，小于等于 <code>MaxInt32</code> 的值调用的是 <code>r.Int31n</code> 。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int31n returns, as an int32, a non-negative pseudo-random number in the half-open interval [0,n).</span>
 </span></span><span class="line"><span class="cl"><span class="c1">// It panics if n &lt;= 0.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Rand</span><span class="p">)</span> <span class="nf">Int31n</span><span class="p">(</span><span class="nx">n</span> <span class="kt">int32</span><span class="p">)</span> <span class="kt">int32</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">n</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="p">{</span>
@@ -477,72 +316,24 @@
 </span></span><span class="line"><span class="cl">	<span class="p">}</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">v</span> <span class="o">%</span> <span class="nx">n</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>如果传入的值是2的幂次方，则调用的 <code>r.Int31() &amp; (n - 1)</code> ；</p>
+</span></span></code></pre></div><p>如果传入的值是2的幂次方，则调用的 <code>r.Int31() &amp; (n - 1)</code> ；</p>
 <p>因为传入的314不是2的幂次方，所以走的是 <code>max := int32((1 &lt;&lt; 31) - 1 - (1&lt;&lt;31)%uint32(n))</code> 下面的逻辑。</p>
 <p>针对 max 这个逻辑，需要理解它的用途，它其实是将 <strong>int32</strong>  <code>0, (1 &lt;&lt; 31) - 1</code> 范围内尾部，“取模后”，不能覆盖  <code>[0, n) </code> 的数值去掉，这样就保证了  <code>[0, n) </code> 内各个数值出现的概率是一致的。举例如下：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">n</span> <span class="kt">int32</span> <span class="p">=</span> <span class="mi">314</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">n</span> <span class="kt">int32</span> <span class="p">=</span> <span class="mi">314</span>
 </span></span><span class="line"><span class="cl"><span class="nx">tail</span> <span class="o">:=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">%</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl"><span class="nx">max</span> <span class="o">:=</span> <span class="nb">int32</span><span class="p">((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">31</span><span class="p">)</span><span class="o">%</span><span class="nb">uint32</span><span class="p">(</span><span class="nx">n</span><span class="p">))</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">tail</span><span class="p">)</span>    <span class="c1">// 282</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">max</span><span class="p">)</span>     <span class="c1">// 2147483365</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">max</span> <span class="o">%</span> <span class="nx">n</span><span class="p">)</span> <span class="c1">// 313</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>继续往下看逻辑，无论是不是2的幂次方，最终都会调用到   <code>r.Int31() </code> ，所以需要看 <code>r.Int31() </code> 的具体实现。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int31 returns a non-negative pseudo-random 31-bit integer as an int32.</span>
+</span></span></code></pre></div><p>继续往下看逻辑，无论是不是2的幂次方，最终都会调用到   <code>r.Int31() </code> ，所以需要看 <code>r.Int31() </code> 的具体实现。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int31 returns a non-negative pseudo-random 31-bit integer as an int32.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Rand</span><span class="p">)</span> <span class="nf">Int31</span><span class="p">()</span> <span class="kt">int32</span> <span class="p">{</span> <span class="k">return</span> <span class="nb">int32</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nf">Int63</span><span class="p">()</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>r.Int31() </code>  中调用的是   <code>r.Int63() </code> ，然后取结果的高31位作为 <strong>int32</strong> 随机值，下面看 <code>r.Int63() </code> 的实现。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.</span>
+</span></span></code></pre></div><p><code>r.Int31() </code>  中调用的是   <code>r.Int63() </code> ，然后取结果的高31位作为 <strong>int32</strong> 随机值，下面看 <code>r.Int63() </code> 的实现。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Rand</span><span class="p">)</span> <span class="nf">Int63</span><span class="p">()</span> <span class="kt">int64</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">src</span><span class="p">.</span><span class="nf">Int63</span><span class="p">()</span> <span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>可以看到，最终调用的是 <code>r.src.Int63()</code> 。</p>
+</span></span></code></pre></div><p>可以看到，最终调用的是 <code>r.src.Int63()</code> 。</p>
 <p>看下Rand的定义，因为上面已经分析出了Rand的src的具体实现就是 <strong>rngSource</strong>。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// A Rand is a source of random numbers.</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// A Rand is a source of random numbers.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Rand</span> <span class="kd">struct</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">src</span> <span class="nx">Source</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">s64</span> <span class="nx">Source64</span> <span class="c1">// non-nil if src is source64</span>
@@ -556,56 +347,16 @@
 </span></span><span class="line"><span class="cl">	<span class="c1">// that are still valid.</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">readPos</span> <span class="kt">int8</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>因此，随机数的产生调用的就是 <strong>rngSource</strong> 结构体的 <strong>Int63</strong> 函数。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.</span>
+</span></span></code></pre></div><p>因此，随机数的产生调用的就是 <strong>rngSource</strong> 结构体的 <strong>Int63</strong> 函数。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">rng</span> <span class="o">*</span><span class="nx">rngSource</span><span class="p">)</span> <span class="nf">Int63</span><span class="p">()</span> <span class="kt">int64</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">int64</span><span class="p">(</span><span class="nx">rng</span><span class="p">.</span><span class="nf">Uint64</span><span class="p">()</span> <span class="o">&amp;</span> <span class="nx">rngMask</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>其中 <strong>rngMask</strong> 表示 Int64 的最大值，作用是作为掩码。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">rngMax</span>   <span class="p">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">63</span>
+</span></span></code></pre></div><p>其中 <strong>rngMask</strong> 表示 Int64 的最大值，作用是作为掩码。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">rngMax</span>   <span class="p">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">63</span>
 </span></span><span class="line"><span class="cl"><span class="nx">rngMask</span>  <span class="p">=</span> <span class="nx">rngMax</span> <span class="o">-</span> <span class="mi">1</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><u><font color=*#0099ff size=4 face="黑体">而  <code>rng.Uint64()</code> ，则是产生随机数的核心函数；它的核心逻辑就是从数组 <code>rngSource.vec</code> 中取出随机数。</font></u></p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Uint64 returns a non-negative pseudo-random 64-bit integer as an uint64.</span>
+</span></span></code></pre></div><p><u><font color=*#0099ff size=4 face="黑体">而  <code>rng.Uint64()</code> ，则是产生随机数的核心函数；它的核心逻辑就是从数组 <code>rngSource.vec</code> 中取出随机数。</font></u></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Uint64 returns a non-negative pseudo-random 64-bit integer as an uint64.</span>
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">rng</span> <span class="o">*</span><span class="nx">rngSource</span><span class="p">)</span> <span class="nf">Uint64</span><span class="p">()</span> <span class="kt">uint64</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">rng</span><span class="p">.</span><span class="nx">tap</span><span class="o">--</span>
 </span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">rng</span><span class="p">.</span><span class="nx">tap</span> <span class="p">&lt;</span> <span class="mi">0</span> <span class="p">{</span>
@@ -621,9 +372,7 @@
 </span></span><span class="line"><span class="cl">	<span class="nx">rng</span><span class="p">.</span><span class="nx">vec</span><span class="p">[</span><span class="nx">rng</span><span class="p">.</span><span class="nx">feed</span><span class="p">]</span> <span class="p">=</span> <span class="nx">x</span>
 </span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">uint64</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>实际上，调用 <code>Intn(), Int31n(), Int63(), Int63n()</code> 等其他随机函数，最终调用到都是函数 <code>rngSource.Uint64()</code> 。<strong>可以看到每次调用就是利用 rng.feed, rng.tap 从 rng.vec 中取到两个值相加的结果返回，同时这个结果又重新放入 rng.vec</strong>。这样做的目的是，让随机数更加丰富随机，而不是仅局限于 rng.vec 数组中的值。</p>
+</span></span></code></pre></div><p>实际上，调用 <code>Intn(), Int31n(), Int63(), Int63n()</code> 等其他随机函数，最终调用到都是函数 <code>rngSource.Uint64()</code> 。<strong>可以看到每次调用就是利用 rng.feed, rng.tap 从 rng.vec 中取到两个值相加的结果返回，同时这个结果又重新放入 rng.vec</strong>。这样做的目的是，让随机数更加丰富随机，而不是仅局限于 rng.vec 数组中的值。</p>
 <h2 id="源码总结">源码总结
 </h2><p>通过以上的源码分析，可以总结出以下几点：</p>
 <ol>
@@ -631,20 +380,7 @@
 <li><strong>相同seed种子，每次运行的结果是一样的。</strong> 因为随机数是从 rng.vec 数组中取出来的，这个数组是根据种子生成的，相同的种子生成的 rng.vec 数组是相同的。</li>
 <li><strong>不同seed种子，每次运行的结果可能一样。</strong> 因为根据种子生成 rng.vec 数组时会有一个对int32最大值取模的操作，模后的结果可能相同，也就是两个种子如果相差int32的最大值，就会导致 rng.vec 数组相同。</li>
 </ol>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">r1</span> <span class="o">:=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="mi">1111</span><span class="p">))</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">r1</span> <span class="o">:=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="mi">1111</span><span class="p">))</span>
 </span></span><span class="line"><span class="cl"><span class="nx">r2</span> <span class="o">:=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="mi">1111</span> <span class="o">+</span> <span class="nx">math</span><span class="p">.</span><span class="nx">MaxInt32</span><span class="p">))</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;第一个随机器：&#34;</span><span class="p">,</span> <span class="nx">r1</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span>  <span class="c1">// 第一个随机器： 9241</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;第一个随机器：&#34;</span><span class="p">,</span> <span class="nx">r1</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span>  <span class="c1">// 第一个随机器： 8842</span>
@@ -653,9 +389,7 @@
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;第二个随机器：&#34;</span><span class="p">,</span> <span class="nx">r2</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span>  <span class="c1">// 第二个随机器： 9241</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;第二个随机器：&#34;</span><span class="p">,</span> <span class="nx">r2</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span>  <span class="c1">// 第二个随机器： 8842</span>
 </span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;第二个随机器：&#34;</span><span class="p">,</span> <span class="nx">r2</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span>  <span class="c1">// 第二个随机器： 2221</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div>
+</span></span></code></pre></div>
 </section>
 
 
