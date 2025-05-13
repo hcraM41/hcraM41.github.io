@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Golang on 14March</title>
-        <link>http://localhost:1313/categories/golang/</link>
+        <link>https://hcraM41.github.io/categories/golang/</link>
         <description>Recent content in Golang on 14March</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>Ycz</copyright>
-        <lastBuildDate>Sat, 10 May 2025 23:03:15 +0800</lastBuildDate><atom:link href="http://localhost:1313/categories/golang/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sat, 10 May 2025 23:03:15 +0800</lastBuildDate><atom:link href="https://hcraM41.github.io/categories/golang/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>defer</title>
-        <link>http://localhost:1313/p/defer/</link>
+        <link>https://hcraM41.github.io/p/defer/</link>
         <pubDate>Sat, 10 May 2025 23:03:15 +0800</pubDate>
         
-        <guid>http://localhost:1313/p/defer/</guid>
-        <description>&lt;img src="http://localhost:1313/p/defer/2.png" alt="Featured image of post defer" /&gt;&lt;h2 id=&#34;一defer的简单使用&#34;&gt;一、defer的简单使用
+        <guid>https://hcraM41.github.io/p/defer/</guid>
+        <description>&lt;img src="https://hcraM41.github.io/p/defer/2.png" alt="Featured image of post defer" /&gt;&lt;h2 id=&#34;一defer的简单使用&#34;&gt;一、defer的简单使用
 &lt;/h2&gt;&lt;p&gt;&lt;code&gt;defer&lt;/code&gt; 拥有注册延迟调用的机制，&lt;strong&gt;&lt;code&gt;defer&lt;/code&gt; 关键字后面跟随的语句或者函数，会在当前的函数&lt;code&gt;return&lt;/code&gt; 正常结束 或者 &lt;code&gt;panic&lt;/code&gt; 异常结束 后执行。&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;但是&lt;code&gt;defer&lt;/code&gt; 只有在注册后，最后才能生效调用执行，&lt;code&gt;return&lt;/code&gt; 之后的&lt;code&gt;defer&lt;/code&gt; 语句是不会执行的，因为并没有注册成功。&lt;/p&gt;
 &lt;p&gt;如下例子：&lt;/p&gt;
@@ -442,11 +442,11 @@
         </item>
         <item>
         <title>rand</title>
-        <link>http://localhost:1313/p/rand/</link>
+        <link>https://hcraM41.github.io/p/rand/</link>
         <pubDate>Sat, 10 May 2025 22:26:34 +0800</pubDate>
         
-        <guid>http://localhost:1313/p/rand/</guid>
-        <description>&lt;img src="http://localhost:1313/p/rand/2.png" alt="Featured image of post rand" /&gt;&lt;h2 id=&#34;源码剖析&#34;&gt;源码剖析
+        <guid>https://hcraM41.github.io/p/rand/</guid>
+        <description>&lt;img src="https://hcraM41.github.io/p/rand/2.png" alt="Featured image of post rand" /&gt;&lt;h2 id=&#34;源码剖析&#34;&gt;源码剖析
 &lt;/h2&gt;&lt;p&gt;通过日常随机数的代码使用，看下rank包具体的底层实现：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;New&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;NewSource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Now&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;().&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;UnixNano&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()))&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// 初始化随机器&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Intn&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;314&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// 生成 [0, 314) 内的整数&lt;/span&gt;
@@ -489,7 +489,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;u&gt;&lt;font color=*#0099ff size=4 face=&#34;黑体&#34;&gt;从 newSource 中，可以看到调用了 &lt;code&gt;rng.Seed(seed)&lt;/code&gt; ，即 rngSource 的 Seed ，这个就是随机器初始化的核心函数。&lt;/font&gt;&lt;/u&gt;&lt;/p&gt;
 &lt;details&gt;
-  &lt;summary&gt;🫵😎 ShowCode&lt;/summary&gt;
+  &lt;summary&gt;🫵😎&lt;/summary&gt;
   &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kd&#34;&gt;const&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;nx&#34;&gt;rngLen&lt;/span&gt;   &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;607&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;nx&#34;&gt;rngTap&lt;/span&gt;   &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;273&lt;/span&gt;

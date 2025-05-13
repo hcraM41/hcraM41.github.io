@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="ltr">
-    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+    <head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content=" Golang rand包源码分析">
 <title>rand</title>
 
-<link rel='canonical' href='http://localhost:1313/p/rand/'>
+<link rel='canonical' href='https://hcraM41.github.io/p/rand/'>
 
 <link rel="stylesheet" href="/scss/style.min.5b271e6fb0e4b5f908ddfd09947d02e5c3e1d9d42fe1c6497d03a091a817ad19.css"><meta property='og:title' content="rand">
 <meta property='og:description' content=" Golang rand包源码分析">
-<meta property='og:url' content='http://localhost:1313/p/rand/'>
+<meta property='og:url' content='https://hcraM41.github.io/p/rand/'>
 <meta property='og:site_name' content='14March'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Golang' /><meta property='article:tag' content='源码' /><meta property='article:published_time' content='2025-05-10T22:26:34&#43;08:00'/><meta property='article:modified_time' content='2025-05-10T22:26:34&#43;08:00'/><meta property='og:image' content='http://localhost:1313/p/rand/2.png' />
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Golang' /><meta property='article:tag' content='源码' /><meta property='article:published_time' content='2025-05-10T22:26:34&#43;08:00'/><meta property='article:modified_time' content='2025-05-10T22:26:34&#43;08:00'/><meta property='og:image' content='https://hcraM41.github.io/p/rand/2.png' />
 <meta name="twitter:title" content="rand">
 <meta name="twitter:description" content=" Golang rand包源码分析"><meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content='http://localhost:1313/p/rand/2.png' />
+    <meta name="twitter:image" content='https://hcraM41.github.io/p/rand/2.png' />
     <link rel="shortcut icon" href="/favicon.ico" />
 
     </head>
@@ -225,7 +225,7 @@
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p><u><font color=*#0099ff size=4 face="黑体">从 newSource 中，可以看到调用了 <code>rng.Seed(seed)</code> ，即 rngSource 的 Seed ，这个就是随机器初始化的核心函数。</font></u></p>
 <details>
-  <summary>🫵😎 ShowCode</summary>
+  <summary>🫵😎</summary>
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">rngLen</span>   <span class="p">=</span> <span class="mi">607</span>
 </span></span><span class="line"><span class="cl">	<span class="nx">rngTap</span>   <span class="p">=</span> <span class="mi">273</span>
@@ -582,7 +582,7 @@
                 src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
                 
                 >
-            </script><script type="text/javascript" src="/ts/main.53430af8a92db9b1fc4b60cd5ed179357cab0769543f7a02e700d3901cff35ad.js" defer></script>
+            </script><script type="text/javascript" src="/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
 <script>
     (function () {
         const customFont = document.createElement('link');
